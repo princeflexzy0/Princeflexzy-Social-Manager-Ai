@@ -22,13 +22,7 @@ Daisy is the AI personality at the heart of this system. She's not a generic bot
 |---|---|
 | AI-generated original posts | ✅ Live |
 | Twitter/X automation | ✅ Live |
-| Instagram automation | ✅ Live |
-| TikTok scheduling | ✅ Live |
-| Facebook page management | ✅ Live |
 | Telegram channel automation | ✅ Live |
-| Reddit community engagement | ✅ Live |
-| Pinterest pin scheduling | ✅ Live |
-| Google My Business updates | ✅ Live |
 | WhatsApp bot | 🔜 Coming soon |
 | Analytics dashboard | 🔜 Coming soon |
 | Viral content detection | 🔜 Coming soon |
@@ -69,13 +63,7 @@ Trending Topics → AI Brain (Daisy) → Platform APIs → Your Audience
 ├── backend/
 │   ├── bots/
 │   │   ├── twitterBot.js        # Twitter/X automation
-│   │   ├── instagramBot.js      # Instagram automation
-│   │   ├── tiktokBot.js         # TikTok scheduling
-│   │   ├── facebookBot.js       # Facebook management
 │   │   ├── telegramBot.js       # Telegram broadcasts
-│   │   ├── redditBot.js         # Reddit engagement
-│   │   ├── pinterestBot.js      # Pinterest scheduling
-│   │   └── gmbBot.js            # Google My Business
 │   ├── controllers/
 │   │   └── adminController.js   # Bot scheduling and control
 │   ├── routes/

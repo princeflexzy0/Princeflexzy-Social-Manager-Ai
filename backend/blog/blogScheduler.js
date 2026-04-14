@@ -1,8 +1,4 @@
 const { supabase } = require('../services/pgClient');
-const { publishToMedium } = require('../services/mediumService');
-const { publishToSubstack } = require('../services/substackService');
-const { publishToReddit } = require('../services/redditService');
-const { publishToGMB } = require('../services/gmbService');
 const logger = require('../utils/logger');
 
 const publishPendingBlogs = async () => {
@@ -24,10 +20,6 @@ const publishPendingBlogs = async () => {
 
   for (const blog of blogs) {
     try {
-      await publishToMedium(blog);
-      await publishToSubstack(blog);
-      await publishToReddit({ ...blog, subreddit: process.env.DEFAULT_SUBREDDIT || 'test' });
-      await publishToGMB(blog);
 
       await supabase.from('blogs').update({ published: true }).eq('id', blog.id);
       logger.info(`[BLOG_SCHEDULER] Published blog: ${blog.title}`);

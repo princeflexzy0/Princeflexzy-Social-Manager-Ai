@@ -16,7 +16,6 @@ async function sendEmailAlert(subject, message) {
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
-      to: process.env.NOTIFY_EMAIL,
       subject,
       text: message
     });
@@ -48,7 +47,7 @@ async function sendTwilioAlert(message, via = 'sms') {
   const enabled = via === 'sms' ? process.env.ENABLE_SMS : process.env.ENABLE_WHATSAPP;
   if (enabled !== 'true') return;
 
-  const from = via === 'whatsapp' ? process.env.TWILIO_WHATSAPP_FROM : process.env.TWILIO_SMS_FROM;
+  const from = process.env.TWILIO_WHATSAPP_FROM;
   const to = via === 'whatsapp' ? process.env.ALERT_WHATSAPP_TO : process.env.ALERT_SMS_TO;
 
   if (!from || !to) {
@@ -75,7 +74,7 @@ async function notifyTrap({ platform, user, message }) {
 
   await sendEmailAlert(`Trap Alert: ${platform}`, finalMessage);
   await sendTelegramAlert(finalMessage);
-  await sendTwilioAlert(finalMessage, 'sms');
+  
   await sendTwilioAlert(finalMessage, 'whatsapp');
 }
 

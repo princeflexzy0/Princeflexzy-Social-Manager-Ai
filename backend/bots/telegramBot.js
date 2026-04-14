@@ -48,7 +48,7 @@ async function runTelegramBot(payload = {}) {
       textToPost = String(queuedPost.caption || queuedPost.text || '').trim();
     }
     if (!textToPost) {
-      logger.info('[TelegramBot] Queue empty — auto-generating Revozi content...');
+      logger.info('[TelegramBot] Queue empty — auto-generating content...');
       const generated = await autoGenerateContent('telegram');
       textToPost = generated.caption;
     }

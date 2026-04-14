@@ -1,237 +1,206 @@
-```markdown
-# Default-Automation
+# Princeflexzy Social Manager AI — Backend
 
 ## 🚀 Overview
 
-**Default-Automation** is a modular Node.js automation system for social media and blog management, powered by Supabase. It supports multi-platform bots, blog generation, engagement tracking, rewards, traps, reminders, notifications, and analytics.
+The backend is a modular Node.js automation system for social media management, powered by Supabase. It handles Twitter/X automation via Daisy, blog generation, engagement tracking, rewards, notifications, and analytics.
 
 ---
 
-## 🧠 System Flow Overview
+## 🧠 System Flow
 
-**Default-Automation** orchestrates a complete automation pipeline for social media and blog management. Here is the high-level flow of the system:
-
-1. **Input & Content Creation**
-   - Admin/user provides input (text, prompts, images, etc.) via dashboard or API.
-   - For blogs: input is sent to the blog generator (OpenAI, Replicate).
-   - For social posts: input is used to generate captions, images, or videos.
-
-2. **Blog Generation**
-   - Blog content is generated using AI (OpenAI GPT-4 for text, Replicate/DALL·E for images).
-   - Blog metadata (tags, images, prompts) is attached.
-   - Blog is saved in the database and previewed in the dashboard.
-
-3. **Post Scheduling & Publishing**
-   - Posts (social or blog) are scheduled via the dashboard or API.
-   - Scheduled posts are queued in the `post_queue` table.
-   - Bots pick up queued posts and publish to respective platforms (Instagram, Twitter, TikTok, Facebook, Reddit, Telegram, Pinterest, GMB).
-   - Status of each post is tracked (pending, posted, failed).
-
-4. **Blog Syndication**
-   - Generated blogs are syndicated to platforms like Medium, Substack, Reddit, GMB.
-   - Syndication status and URLs are tracked.
-
-5. **Engagement & Analytics**
-   - Engagements (likes, shares, comments, views) are tracked for each post via the `engagements` table.
-   - Analytics dashboards show platform performance, top users, and engagement metrics.
-
-6. **Rewards System**
-   - When engagement thresholds are met, rewards are automatically issued to users (silver, gold, viral).
-   - Rewards are tracked in the `rewards` table and notifications are sent.
-
-7. **Notifications & Reminders**
-   - System sends notifications for rewards, traps, reminders, and system events via email, Telegram, SMS, WhatsApp.
-
-8. **Admin Dashboard**
-   - Central dashboard for managing posts, blogs, bots, rewards, analytics, notifications, and system settings.
-
----
-
-**Flow Diagram:**
-
-```
 Input (Prompt/Text/Image)
-      |
-      v
-Blog Generation (AI) ----> Blog Preview ----> Blog Syndication (Medium, Substack, Reddit, GMB)
-      |
-      v
-Post Creation (Caption/Image/Video)
-      |
-      v
-Post Scheduling ----> Post Queue ----> Bots ----> Social Platforms
-      |
-      v
-Engagement Tracking (Likes, Shares, Comments, Views)
-      |
-      v
-Reward Issuance ----> Notifications
-      |
-      v
-Analytics Dashboard (Performance, Top Users, Rewards)
-```
+|
+v
+AI Content Generation (OpenAI + Gemini) — Daisy's personality applied
+|
+v
+Post Scheduling → Post Queue → Twitter/X Bot → Published
+|
+v
+Engagement Tracking (replies, quotes, reactions)
+|
+v
+Reward Issuance → Notifications
+|
+v
+Analytics Dashboard
+
 
 ---
 
 ## 🧠 Key Features
 
-- **Social Media Bots** (`/bots`)
-  - Instagram, TikTok, Twitter, Telegram, Reddit, GMB
-  - Auto-post, auto-like, auto-comment, auto-reply, scheduling
+- **Twitter/X Bot** (`/bots/twitterBot.js`)
+  - AI-generated original tweets via Daisy
+  - Trending topic detection
+  - Auto-reply, quote tweets, engagement
+  - OAuth 1.0a + OAuth 2.0 support
+- **Telegram Bot** (`/bots/telegramBot.js`)
+  - Channel broadcast automation
 - **Blog Generator** (`/blog`)
-  - `generateBlog.js`, `imageGenerator.js`, `blogScheduler.js`
-  - Uses OpenAI GPT-4 for writing, DALL·E or Replicate for images
-  - Blog syndication (Medium, Substack, Reddit, GMB)
+  - AI blog writing via OpenAI GPT-4
 - **Reward & Engagement Tracker**
-  - Tracks engagement via Supabase `engagements` and `rewards` tables
+  - Tracks engagement via Supabase
   - Automatically issues rewards when thresholds are met
-- **Traps & Reminder System** (`/traps`, `/cron/reminderScheduler.js`)
+- **Traps & Reminder System** (`/traps`, `/cron`)
   - Detects suspicious logins, triggers notifications and follow-ups
 - **Supabase Integration**
-  - All data, RLS, authentication, and RPC logic handled in Supabase
-  - No MongoDB dependency
+  - All data, auth, and RLS logic via Supabase
 - **Cron Jobs**
   - Automated scheduling via `scheduleBots.js`, `blogCron.js`, `reminderScheduler.js`
 - **Notification System**
-  - Alerts via email, Telegram, SMS, WhatsApp
-- **Settings & Analytics**
-  - Admin dashboard for configuration, analytics, and reward management
+  - Alerts via Telegram
 
 ---
 
-## ⚙️ Setup Instructions
+## ⚙️ Setup
 
-### 1. Requirements
+### Requirements
 
 - Node.js v18+
-- Supabase project (URL & service key)
-- API tokens for social platforms (Instagram Graph, Twitter, Reddit, etc.)
-- OpenAI API key (for blog generation)
-- Replicate API key (for image generation)
-- Email/Twilio/Telegram credentials for notifications
+- Supabase project (URL and service key)
+- Twitter API v2 credentials
+- OpenAI API key
 
-### 2. Installation
+### Installation
 
 ```bash
-git clone https://github.com/your-org/default-automation.git
-cd default-automation
+git clone https://github.com/princeflexzy0/Princeflexzy-Social-Manager-Ai.git
+cd Princeflexzy-Social-Manager-Ai/backend
 npm install
 ```
 
 ---
 
-## 🔐 .env Configuration (Sample)
+## 🔐 Environment Variables
 
 ```env
-# Express Server
-PORT=3000
+# Server
+PORT=5000
+NODE_ENV=production
+INTERNAL_SECRET=
+ADMIN_API_KEY=
 
 # Supabase
-SUPABASE_URL=https://xyz.supabase.co
-SUPABASE_SERVICE_KEY=your_service_key
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+DATABASE_URL=
 
-# Notification (Email via Gmail)
-SMTP_EMAIL=your_email@gmail.com
-SMTP_PASS=your_app_password
-NOTIFY_EMAIL=recipient@example.com
+# Twitter/X
+TWITTER_API_KEY=
+TWITTER_API_SECRET=
+TWITTER_ACCESS_TOKEN=
+TWITTER_ACCESS_TOKEN_SECRET=
+TWITTER_BEARER_TOKEN=
+TWITTER_CLIENT_ID=
+TWITTER_CLIENT_SECRET=
+TWITTER_OAUTH2_ACCESS_TOKEN=
+TWITTER_OAUTH2_REFRESH_TOKEN=
+
+# AI
+OPENAI_API_KEY=
+GEMINI_API_KEY=
 
 # Telegram
-TELEGRAM_BOT_TOKEN=your_telegram_bot_token
-TELEGRAM_CHAT_ID=123456789
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
 
-# Twilio (SMS/WhatsApp)
-TWILIO_SID=your_twilio_sid
-TWILIO_AUTH_TOKEN=your_twilio_token
-TWILIO_SMS_FROM=+1234567890
-ALERT_SMS_TO=+2547xxxxxxx
-TWILIO_WHATSAPP_FROM=whatsapp:+1234567890
-ALERT_WHATSAPP_TO=whatsapp:+2547xxxxxxx
 
-# Instagram Graph API
-FB_ACCESS_TOKEN=EAAGxxxxx...
-IG_BUSINESS_ID=1784xxxxxxxxx
-FB_PAGE_ID=123456789
 
-# Reddit
-REDDIT_ACCESS_TOKEN=...
-REDDIT_USER=...
-
-# TikTok (uses cookie header)
-TIKTOK_AUTH_HEADER=tt_webid=...; sessionid=...
-
-# Twitter
-TWITTER_BEARER_TOKEN=...
-TWITTER_USER_ID=...
-
-# OpenAI
-OPENAI_API_KEY=sk-...
-
-# Replicate
-REPLICATE_API_KEY=...
-
-# Blog Syndication
-MEDIUM_TOKEN=...
-SUBSTACK_TOKEN=...
-REDDIT_TOKEN=...
-GMB_TOKEN=...
 ```
 
 ---
 
-## 🧪 Usage
-
-### Start the Server
+## 🚀 Running
 
 ```bash
 node server.js
 ```
 
-* Express will launch on `http://localhost:PORT`
-* Bots, blog generator, traps, and cron jobs will initialize automatically
+Express launches on `http://localhost:PORT`. Bots, cron jobs, and traps initialise automatically.
 
 ---
 
 ## 📦 Directory Structure
 
-```
-default-automation/
-├── bots/                     # Social media bots
-│   ├── instagramBot.js
-│   ├── twitterBot.js
-│   └── ...
-├── blog/                     # Blog generation
-│   ├── generateBlog.js
-│   ├── imageGenerator.js
-│   └── ...
-├── cron/                     # Cron jobs
-│   ├── scheduleBots.js
-│   ├── blogCron.js
-│   └── reminderScheduler.js
-├── traps/                    # Trap detection and reminders
-│   ├── trapController.js
-│   └── ...
-├── services/                 # External services integration
-│   ├── notificationService.js
-│   └── ...
-├── logs/                     # Log files
-│   ├── botLogs.log
-│   ├── trapEvents.log
-│   └── ...
-├── .env.sample               # Sample environment configuration
-├── package.json              # Node.js dependencies and scripts
-└── server.js                 # Entry point for the application
-```
-
----
+backend/
+├── bots/
+│ ├── twitterBot.js # Daisy — Twitter/X automation
+│ └── telegramBot.js # Telegram broadcasts
+├── blog/ # AI blog generation and syndication
+├── controllers/ # Route controllers
+├── cron/ # Scheduled jobs
+│ ├── scheduleBots.js
+│ ├── blogCron.js
+│ └── reminderScheduler.js
+├── routes/ # API routes
+├── services/ # External service integrations
+│ ├── aiService.js
+│ ├── pgClient.js
+│ └── notificationService.js
+├── traps/ # Login trap detection
+├── utils/ # Utilities (logger, mailer, SMS, etc.)
+├── logs/ # Log files
+├── server.js # Entry point
+└── package.json
 
 
 ---
 
-## 🧩 Extending Functionality
+## 🧩 Extending
 
-You can add:
+- Add new bots in `/bots`
+- Add new routes in `/routes`
+- Add notification channels in `services/notificationService.js`
+- Add new traps in `/traps`
+ENDOFFILE
 
-* New bots in `/bots` (just export a function)
-* New routes in `/routes`
-* New notification methods in `services/notificationService.js`
-* New traps in `/traps`
+Now the frontend README:
+
+bash
+cat > frontend/README.md << 'ENDOFFILE'
+# Princeflexzy Social Manager AI — Frontend
+
+## Overview
+
+A Next.js dashboard scaffold for the Princeflexzy Social Manager AI system.
+
+> **Note:** This frontend is a UI scaffold only. All bots and automation run entirely via the backend. The dashboard is not yet wired to live backend data.
+
+---
+
+## Tech Stack
+
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- shadcn/ui components
+
+---
+
+## Pages
+
+- `/admin` — Bot management, analytics, posts, users, rewards, notifications
+- `/partner` — Partner dashboard, posts, rewards
+- `/visitor` — Public rewards page
+- `/login` — Auth page
+
+---
+
+## Running Locally
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Opens on `http://localhost:3000`
+
+---
+
+## Notes
+
+- The frontend makes API calls to the backend at the URL set in `lib/api.ts`
+- Authentication is handled via JWT middleware
+- This UI was scaffolded as a starting point — full backend wiring is in progress
