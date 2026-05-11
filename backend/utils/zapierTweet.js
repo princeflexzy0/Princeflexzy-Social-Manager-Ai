@@ -1,7 +1,7 @@
 const axios = require('axios');
 const logger = require('./logger');
 
-const ZAPIER_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/27564361/4yzw0vu/';
+const ZAPIER_WEBHOOK = 'https://hook.eu1.make.com/okbyorjyitxw37oih16o5m9k9rre85sg';
 
 async function sendToZapier(text) {
   try {
