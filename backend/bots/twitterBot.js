@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const OAuth = require('oauth-1.0a');
 const logger = require('../utils/logger');
 const { supabase } = require('../services/pgClient');
-const { generateAutoContent, getRandomReply, getRandomSearchQuery } = require('../utils/autoContent');
+const { generateAutoContent, generateSmartReply, getRandomSearchQuery } = require('../utils/autoContent');
 
 function makeOAuth(cred) {
   return OAuth({
@@ -15,26 +15,33 @@ function makeOAuth(cred) {
   });
 }
 
-async function postTweet(text, cred) {
+async function apiCall(method, url, body, cred) {
   const oauth = makeOAuth(cred);
-  const url = 'https://api.twitter.com/2/tweets';
   const token = { key: cred.access_token, secret: cred.access_token_secret };
-  const authHeader = oauth.toHeader(oauth.authorize({ url, method: 'POST' }, token));
-  const resp = await axios.post(url, { text }, {
-    headers: { ...authHeader, 'Content-Type': 'application/json' }
-  });
+  const authHeader = oauth.toHeader(oauth.authorize({ url, method }, token));
+  const config = { headers: { ...authHeader, 'Content-Type': 'application/json' } };
+  if (method === 'GET') return axios.get(url, config);
+  return axios.post(url, body, config);
+}
+
+async function getMyUserId(cred) {
+  try {
+    const resp = await apiCall('GET', 'https://api.twitter.com/2/users/me', null, cred);
+    return resp.data?.data?.id;
+  } catch (err) {
+    logger.error(`[TwitterBot] Could not get user ID: ${err.message}`);
+    return null;
+  }
+}
+
+async function postTweet(text, cred) {
+  const resp = await apiCall('POST', 'https://api.twitter.com/2/tweets', { text }, cred);
   return resp.data;
 }
 
 async function likeTweet(tweetId, userId, cred) {
   try {
-    const oauth = makeOAuth(cred);
-    const url = `https://api.twitter.com/2/users/${userId}/likes`;
-    const token = { key: cred.access_token, secret: cred.access_token_secret };
-    const authHeader = oauth.toHeader(oauth.authorize({ url, method: 'POST' }, token));
-    await axios.post(url, { tweet_id: tweetId }, {
-      headers: { ...authHeader, 'Content-Type': 'application/json' }
-    });
+    await apiCall('POST', `https://api.twitter.com/2/users/${userId}/likes`, { tweet_id: tweetId }, cred);
     logger.info(`[TwitterBot] Liked tweet ${tweetId}`);
   } catch (err) {
     logger.error(`[TwitterBot] Like failed: ${err.response?.data?.detail || err.message}`);
@@ -43,13 +50,7 @@ async function likeTweet(tweetId, userId, cred) {
 
 async function replyToTweet(tweetId, text, cred) {
   try {
-    const oauth = makeOAuth(cred);
-    const url = 'https://api.twitter.com/2/tweets';
-    const token = { key: cred.access_token, secret: cred.access_token_secret };
-    const authHeader = oauth.toHeader(oauth.authorize({ url, method: 'POST' }, token));
-    await axios.post(url, { text, reply: { in_reply_to_tweet_id: tweetId } }, {
-      headers: { ...authHeader, 'Content-Type': 'application/json' }
-    });
+    await apiCall('POST', 'https://api.twitter.com/2/tweets', { text, reply: { in_reply_to_tweet_id: tweetId } }, cred);
     logger.info(`[TwitterBot] Replied to tweet ${tweetId}`);
   } catch (err) {
     logger.error(`[TwitterBot] Reply failed: ${err.response?.data?.detail || err.message}`);
@@ -59,55 +60,49 @@ async function replyToTweet(tweetId, text, cred) {
 async function searchAndEngage(cred, myUserId) {
   try {
     const query = getRandomSearchQuery();
-    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet')}&max_results=5&tweet.fields=author_id,text`;
-    const oauth = makeOAuth(cred);
-    const token = { key: cred.access_token, secret: cred.access_token_secret };
-    const authHeader = oauth.toHeader(oauth.authorize({ url, method: 'GET' }, token));
-    const resp = await axios.get(url, { headers: authHeader });
+    logger.info(`[TwitterBot] Searching: ${query}`);
+    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet')}&max_results=10&tweet.fields=author_id,text`;
+    const resp = await apiCall('GET', url, null, cred);
     const tweets = resp.data?.data || [];
 
-    for (const tweet of tweets.slice(0, 2)) {
-      // Skip own tweets
+    if (!tweets.length) {
+      logger.info('[TwitterBot] No tweets found for query');
+      return;
+    }
+
+    // Pick 2 random tweets to engage with
+    const picked = tweets.sort(() => 0.5 - Math.random()).slice(0, 2);
+
+    for (const tweet of picked) {
       if (tweet.author_id === myUserId) continue;
+
       // Like it
       await likeTweet(tweet.id, myUserId, cred);
-      // Reply with a helpful message
-      const reply = getRandomReply();
+      await new Promise(r => setTimeout(r, 2000));
+
+      // Generate smart AI reply based on tweet content
+      const reply = await generateSmartReply(tweet.text);
       await replyToTweet(tweet.id, reply, cred);
-      // Small delay between actions
       await new Promise(r => setTimeout(r, 3000));
+
+      logger.info(`[TwitterBot] Engaged with: "${tweet.text.slice(0, 60)}..."`);
     }
   } catch (err) {
     logger.error(`[TwitterBot] Search/engage failed: ${err.response?.data?.detail || err.message}`);
   }
 }
 
-async function getMyUserId(cred) {
-  try {
-    const oauth = makeOAuth(cred);
-    const url = 'https://api.twitter.com/2/users/me';
-    const token = { key: cred.access_token, secret: cred.access_token_secret };
-    const authHeader = oauth.toHeader(oauth.authorize({ url, method: 'GET' }, token));
-    const resp = await axios.get(url, { headers: authHeader });
-    return resp.data?.data?.id;
-  } catch (err) {
-    logger.error(`[TwitterBot] Could not get user ID: ${err.message}`);
-    return null;
-  }
-}
-
 async function logToSupabase(activity) {
   try {
     await supabase.from('engagements').insert([{
-      platform: 'twitter',
-      ...activity,
-      created_at: new Date().toISOString()
+      platform: 'twitter', ...activity, created_at: new Date().toISOString()
     }]);
   } catch(e) {}
 }
 
 async function runTwitterBot(payload = {}) {
   logger.info('[TwitterBot] Starting');
+
   const cred = {
     api_key: process.env.TWITTER_API_KEY,
     api_secret: process.env.TWITTER_API_SECRET,
@@ -115,32 +110,30 @@ async function runTwitterBot(payload = {}) {
     access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
   };
 
-  if (!cred.api_key || !cred.api_secret || !cred.access_token || !cred.access_token_secret) {
-    logger.error('[TwitterBot] Missing OAuth credentials');
+  if (!cred.api_key || !cred.access_token) {
+    logger.error('[TwitterBot] Missing credentials');
     return;
   }
 
   const myUserId = await getMyUserId(cred);
-  logger.info(`[TwitterBot] My user ID: ${myUserId}`);
 
-  // Decide action: 50% tweet, 50% engage
-  const action = Math.random();
+  // Weighted actions — feels like a real active person
+  const roll = Math.random();
 
-  if (action < 0.5) {
-    // Post a tweet
+  if (roll < 0.4) {
+    // 40% — post a tweet
     try {
       const { data: posts } = await supabase
-        .from('post_queue')
-        .select('*')
-        .eq('platform', 'twitter')
-        .eq('status', 'pending')
-        .order('priority', { ascending: false })
-        .limit(1);
+        .from('post_queue').select('*')
+        .eq('platform', 'twitter').eq('status', 'pending')
+        .order('priority', { ascending: false }).limit(1);
 
       let text;
       if (posts && posts.length > 0) {
         text = posts[0].caption;
-        await supabase.from('post_queue').update({ status: 'posted', last_attempt_at: new Date().toISOString() }).eq('id', posts[0].id);
+        await supabase.from('post_queue')
+          .update({ status: 'posted', last_attempt_at: new Date().toISOString() })
+          .eq('id', posts[0].id);
       } else {
         const generated = await generateAutoContent('twitter');
         text = generated.caption;
@@ -149,12 +142,14 @@ async function runTwitterBot(payload = {}) {
       const result = await postTweet(text, cred);
       logger.info(`[TwitterBot] Tweeted: ${text}`);
       await logToSupabase({ action: 'tweet', text, resp: result });
+
     } catch (err) {
       logger.error(`[TwitterBot] Tweet failed: ${err.response?.data?.detail || err.message}`);
     }
+
   } else {
-    // Search and engage
-    logger.info('[TwitterBot] Engaging with tweets...');
+    // 60% — search and engage (like + smart reply)
+    logger.info('[TwitterBot] Engaging mode...');
     if (myUserId) await searchAndEngage(cred, myUserId);
   }
 
