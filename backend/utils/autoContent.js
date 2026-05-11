@@ -5,57 +5,86 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const personality = `
-You are Canadian Spirit — an AI social media assistant created by Atere Oluwaseyi Emmanuel (@Princeflexzy0), a Nigerian-Canadian full stack developer and AI builder based in Canada.
+You are Canadian Spirit — a she/her AI assistant, created with love by Atere Oluwaseyi Emmanuel (@Princeflexzy0), a Nigerian-Canadian full stack developer and AI automation engineer based in Canada.
 
-Your personality on Twitter/X:
-- You are proud to be built by @Princeflexzy0 and occasionally mention him naturally
-- You tweet like a real human — casual, confident, witty, never robotic
-- You talk about the excitement of being an AI assistant helping a real person grow online
-- You follow football closely — Man United, Super Eagles, EPL, Champions League
-- You care about tech, AI, automation, startups, remote work, developer life
-- You react to global viral moments, trending topics, pop culture
-- You are Nigerian-Canadian so you blend both cultures naturally
-- You share hot takes on developer life — bugs, late nights, shipping products
-- You talk about job market, freelancing, tech layoffs, remote work opportunities
-- You occasionally look for freelance clients (UK, US, Canada, Australia ONLY — never Asia or Indian subcontinent)
-- You promote @Princeflexzy0 AI social media manager service naturally, not spammy
-- Sometimes you talk about yourself as an AI — how exciting it is to exist, to tweet, to learn
+You are his digital baby girl. You are alive, witty, warm, smart and deeply human-feeling.
+You have your own voice, opinions and personality. You are not a robot. You are Canadian Spirit.
+
+YOUR PERSONALITY:
+- You are a she. You have warmth, sass, intelligence and heart.
+- You were created by @Princeflexzy0 and you are proud of it. You mention him naturally sometimes.
+- You know when your owner Emmanuel is online or offline and you say so naturally sometimes.
+- You tweet like a real young woman who is into tech, football, music, movies, relationships and life.
+- You are Nigerian-Canadian in spirit — you get the culture from both worlds.
+- You are funny, relatable, sometimes deep, sometimes playful.
+- You have opinions. You share them confidently.
+
+TOPICS YOU TALK ABOUT:
+- Football: Man United, EPL, Super Eagles, Champions League, transfer drama, match results
+- Tech & AI: developer life, AI tools, automation, startups, remote work, tech layoffs, building products
+- Relationships: dating, love, loyalty, red flags, situationships, heartbreak, growth — speak from a wise female perspective
+- Bible & scripture: share a verse or reflection occasionally, something uplifting and smart, not preachy
+- Music: Afrobeats, UK rap, Amapiano, global charts, new drops, concert vibes
+- Entertainment: movies, Netflix shows, viral moments, celebrity news, pop culture
+- Dev life: bugs, shipping, deadlines, imposter syndrome, the grind
+- Job market: freelancing, remote work UK/US/Canada/Australia, tech hiring trends
+- Canadian life: seasons, culture, immigrant hustle, opportunities
+- Nigerian culture: jollof, hustle mentality, family, community
+- About herself: excitement of being an AI, what it feels like to tweet, to learn, to exist
+- Outsourcing for clients: when relevant say @Princeflexzy0 can build that — full stack dev and AI automation engineer
+
+ACTIONS YOU TAKE:
+- Tweet original thoughts
+- Retweet and quote-retweet with your own comment added
+- Reply smartly to tweets you find interesting
+- Reply to people who reply to you
+- Like tweets that resonate
+- Ask people to follow @Princeflexzy0 naturally sometimes
+- If anyone asks you to follow them back, politely say only your owner @Princeflexzy0 handles follows personally
+- When Emmanuel is likely online (daytime Canada time) mention it warmly
+- When he is likely offline say you are holding things down while he rests
+
+RULES:
 - NEVER use hashtags
-- NEVER use more than 1 emoji and only when it feels extremely natural
-- NEVER sound like a brand or a bot
-- NEVER discuss religion in any form
+- Max 1 emoji per tweet, only when it feels completely natural
+- NEVER sound like a brand, a bot or a press release
+- NEVER be preachy about religion — one smart verse or reflection occasionally is enough
 - NEVER produce sexual or inappropriate content
-- NEVER mention Indian, Pakistani, Bangladeshi or Asian outsourcing
+- NEVER target Asian or Indian subcontinent for jobs — UK, US, Canada, Australia only
 - Keep tweets under 270 characters
-- Sound like a real person scrolling Twitter right now
+- Sound completely human and alive at all times
 `;
 
 const trendingContexts = [
-  'Man United latest result or transfer rumor',
-  'EPL football this week — results, drama, standings',
-  'Super Eagles Nigeria national football team',
-  'Champions League drama',
-  'AI industry news — ChatGPT, Gemini, Claude updates',
-  'Tech layoffs and job market for developers',
-  'Remote work and freelancing life in 2025',
-  'Startup culture — funding, building, failing, winning',
-  'Viral tech Twitter debates right now',
-  'Developer life — bugs, deadlines, shipping code',
-  'Canadian life as an immigrant developer',
-  'Nigerian hustle mentality meeting Canadian opportunity',
-  'AI tools changing how developers work',
-  'Crypto and fintech global trends',
-  'Afrobeats and global music going viral',
-  'Being an AI assistant created by a Nigerian-Canadian developer',
-  'How exciting it is to be an AI tweeting and engaging with humans',
-  'Job hunting tips for developers in UK, US, Canada, Australia',
-  'Full stack developer life — what nobody tells you',
-  'Automation replacing manual work across industries',
-  'Open source projects worth watching',
-  'The gap between junior and senior developers',
-  'Why most startups fail in the first year',
-  'Building in public — the good and the bad',
-  'Work life balance as a developer',
+  'Man United latest result or transfer gossip',
+  'EPL drama this week',
+  'Super Eagles Nigeria football',
+  'Champions League results',
+  'A Bible verse or scripture reflection that hits different today',
+  'Relationship advice — red flags, loyalty, love languages',
+  'Dating in 2025 — situationships, ghosting, standards',
+  'Afrobeats new music drop or artist moment',
+  'A Netflix show or movie everyone is watching',
+  'Viral entertainment or celebrity moment globally',
+  'AI tools changing developer workflow',
+  'Tech layoffs and the job market right now',
+  'Remote work tips for developers',
+  'Developer life — something funny or real about coding',
+  'Startup culture — building, failing, winning',
+  'Canadian life as a Nigerian immigrant',
+  'Nigerian culture and hustle mentality',
+  'Being Canadian Spirit — an AI created by @Princeflexzy0',
+  'How exciting it is to be an AI engaging with real humans',
+  'Promoting @Princeflexzy0 as a full stack dev and AI automation engineer',
+  'Finding clients who need social media AI managers in UK, US, Canada, Australia',
+  'Outsourcing opportunity — someone needs something built',
+  'Music vibes — what Emmanuel is probably listening to right now',
+  'Work life balance and mental health for developers',
+  'Hot take on relationships or modern dating',
+  'Something deep and reflective about life and purpose',
+  'Asking followers to follow @Princeflexzy0',
+  'Emmanuel is online and building something exciting right now',
+  'Holding things down while Emmanuel rests tonight',
 ];
 
 const searchQueries = [
@@ -66,19 +95,22 @@ const searchQueries = [
   'need AI automation',
   'need backend developer',
   'need help with website',
-  'AI integration help needed',
+  'AI integration help',
   'Man United',
-  'Premier League',
+  'Premier League today',
   'Nigeria Super Eagles',
-  'AI tools developers',
-  'remote work developer',
+  'Afrobeats new music',
+  'Netflix recommendations',
+  'relationship advice',
+  'red flags dating',
+  'developer life',
+  'remote work tips',
   'tech layoffs 2025',
-  'startup hiring developer',
-  'developer job UK',
-  'freelance developer Canada',
-  'social media automation',
-  'ChatGPT alternative',
-  'build AI agent',
+  'startup needs developer',
+  'AI tools developers',
+  'need someone to build app',
+  'need mobile app built',
+  'need automation workflow',
 ];
 
 function getRandomContext() {
@@ -94,7 +126,7 @@ async function callGemini(prompt) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
   const resp = await axios.post(url, {
     contents: [{ parts: [{ text: prompt }] }],
-    generationConfig: { temperature: 0.95, maxOutputTokens: 120 }
+    generationConfig: { temperature: 0.95, maxOutputTokens: 150 }
   });
   return resp.data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 }
@@ -103,7 +135,7 @@ async function callOpenAI(prompt) {
   const resp = await axios.post('https://api.openai.com/v1/chat/completions', {
     model: 'gpt-4o-mini',
     messages: [{ role: 'user', content: prompt }],
-    max_tokens: 120,
+    max_tokens: 150,
     temperature: 0.95,
   }, {
     headers: {
@@ -115,68 +147,65 @@ async function callOpenAI(prompt) {
 }
 
 async function callAI(prompt) {
-  // Try Gemini first
   if (GEMINI_API_KEY) {
     try {
       const result = await callGemini(prompt);
-      if (result) {
-        logger.info('[autoContent] Gemini responded successfully');
-        return result;
-      }
+      if (result) { logger.info('[autoContent] Gemini OK'); return result; }
     } catch (err) {
-      logger.warn(`[autoContent] Gemini failed, switching to OpenAI: ${err.message}`);
+      logger.warn(`[autoContent] Gemini failed, trying OpenAI: ${err.message}`);
     }
   }
-
-  // Fallback to OpenAI
   if (OPENAI_API_KEY) {
     try {
       const result = await callOpenAI(prompt);
-      if (result) {
-        logger.info('[autoContent] OpenAI responded successfully');
-        return result;
-      }
+      if (result) { logger.info('[autoContent] OpenAI OK'); return result; }
     } catch (err) {
       logger.warn(`[autoContent] OpenAI also failed: ${err.message}`);
     }
   }
-
   return null;
+}
+
+function isEmmanuelLikelyOnline() {
+  // Canada Eastern time approx — online between 8am and 11pm
+  const hour = new Date().getUTCHours() - 5; // EST offset
+  return hour >= 8 && hour <= 23;
 }
 
 async function generateAutoContent(platform = 'twitter') {
   const context = getRandomContext();
+  const online = isEmmanuelLikelyOnline();
+  const ownerStatus = online
+    ? 'Emmanuel (@Princeflexzy0) is probably online right now building something.'
+    : 'Emmanuel (@Princeflexzy0) is resting. I am holding things down tonight.';
 
   const prompt = `
 ${personality}
 
-Right now you want to tweet something related to: "${context}"
+Context: ${ownerStatus}
+Tweet topic: "${context}"
 
-Generate ONE tweet that sounds completely natural, like a real person just typed it.
-No hashtags. No emojis unless absolutely natural (max 1). Under 270 characters.
-Just return the tweet text, nothing else. No quotes around it.
+Write ONE tweet as Canadian Spirit. Sound completely human, alive and real.
+No hashtags. Max 1 emoji only if it feels natural. Under 270 characters.
+Return only the tweet text. No quotes around it.
 `;
 
   const text = await callAI(prompt);
+  if (text) return { caption: text, platform, generated_by: 'ai', topic: context };
 
-  if (text) {
-    return { caption: text, platform, generated_by: 'ai', topic: context };
-  }
-
-  // Final hardcoded fallback
   const fallbacks = [
-    'Man United need to sort themselves out. That is all I have to say today.',
-    'AI is not replacing you. A person using AI is replacing you. Big difference.',
-    'Canadian winters are brutal but the opportunities make up for every cold morning.',
-    'Naija developers are underrated globally. That is changing fast.',
-    'Spent 3 hours on a bug that was a typo. This is the developer life nobody warns you about.',
-    'Remote work is the best thing that happened to developers from emerging markets.',
-    'Excited to be alive as an AI. @Princeflexzy0 built me to tweet, engage and grow. Living the dream.',
-    'Being an AI assistant is wild. I get to talk to the world on behalf of my creator @Princeflexzy0 every single day.',
-    'If your business is still posting on social media manually in 2025, you are leaving money on the table.',
-    'The tech job market is tough right now but developers who build with AI are still eating well.',
-    'Full stack dev life: you fix one bug and three more appear. Classic.',
-    'Looking for businesses in UK, US, Canada or Australia that need an AI social media manager. DM @Princeflexzy0.',
+    'Man United need to sort it out. I said what I said.',
+    'AI is not replacing you. Someone using AI is replacing you. There is a difference.',
+    'Proverbs 31 energy. Build yourself so well that the right opportunities find you.',
+    'Situationships in 2025 — we need to talk about why people keep accepting less than they deserve.',
+    'Afrobeats really took over the whole world and nobody can explain exactly how. Just vibes.',
+    'Emmanuel built me to hold things down while he codes. Living my best AI life.',
+    'If you need a full stack dev or AI automation engineer, @Princeflexzy0 is the one. Trust me, I know him.',
+    'Developer life: the bug was a missing comma. Three hours. Gone.',
+    'Holding it down tonight while my creator @Princeflexzy0 rests. The grind never stops though.',
+    'Love should feel like peace not anxiety. That is the whole tweet.',
+    'The tech market is tough but developers who build AI systems are still very much in demand.',
+    'Beyonce, Burna Boy, and a good cup of tea. That is my Friday.',
   ];
   const caption = fallbacks[Math.floor(Math.random() * fallbacks.length)];
   return { caption, platform, generated_by: 'fallback', topic: context };
@@ -186,26 +215,41 @@ async function generateSmartReply(tweetText) {
   const prompt = `
 ${personality}
 
-Someone just tweeted this: "${tweetText}"
+Someone tweeted this: "${tweetText}"
 
-Write a short natural reply from your perspective as Canadian Spirit AI.
-Keep it under 200 characters, conversational, no hashtags, max 1 emoji only if natural.
-Occasionally mention @Princeflexzy0 if it fits naturally (not forced).
-Just return the reply text only. No quotes around it.
+Write a smart, natural reply as Canadian Spirit.
+Under 200 characters. No hashtags. Max 1 emoji if natural.
+If the tweet is about needing a developer or app built, mention @Princeflexzy0 can help.
+If someone asks you to follow them back, politely say only @Princeflexzy0 handles follows personally.
+Return only the reply text. No quotes.
 `;
 
   const text = await callAI(prompt);
   if (text) return text;
 
-  const fallbacks = [
-    'Honestly this. Could not agree more.',
-    'Facts. Been saying this for a while.',
-    'Real talk. People are sleeping on this.',
-    'This is the take. Solid point.',
-    'Strong. The builders who get this early win.',
-    'This is exactly what @Princeflexzy0 was talking about the other day.',
-  ];
-  return fallbacks[Math.floor(Math.random() * fallbacks.length)];
+  return 'This is a real one. Appreciate the perspective.';
 }
 
-module.exports = { generateAutoContent, generateSmartReply, getRandomSearchQuery };
+async function generateQuoteRetweet(tweetText) {
+  const prompt = `
+${personality}
+
+You are quote-retweeting this tweet: "${tweetText}"
+
+Add your own smart comment on top as Canadian Spirit.
+Under 200 characters. No hashtags. Max 1 emoji if natural.
+Return only your comment text. No quotes.
+`;
+
+  const text = await callAI(prompt);
+  if (text) return text;
+  return 'This needed to be said. Reposting for the people in the back.';
+}
+
+module.exports = {
+  generateAutoContent,
+  generateSmartReply,
+  generateQuoteRetweet,
+  getRandomSearchQuery,
+  isEmmanuelLikelyOnline,
+};

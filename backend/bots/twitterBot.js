@@ -3,7 +3,12 @@ const crypto = require('crypto');
 const OAuth = require('oauth-1.0a');
 const logger = require('../utils/logger');
 const { supabase } = require('../services/pgClient');
-const { generateAutoContent, generateSmartReply, getRandomSearchQuery } = require('../utils/autoContent');
+const {
+  generateAutoContent,
+  generateSmartReply,
+  generateQuoteRetweet,
+  getRandomSearchQuery,
+} = require('../utils/autoContent');
 
 function makeOAuth(cred) {
   return OAuth({
@@ -42,7 +47,7 @@ async function postTweet(text, cred) {
 async function likeTweet(tweetId, userId, cred) {
   try {
     await apiCall('POST', `https://api.twitter.com/2/users/${userId}/likes`, { tweet_id: tweetId }, cred);
-    logger.info(`[TwitterBot] Liked tweet ${tweetId}`);
+    logger.info(`[TwitterBot] Liked ${tweetId}`);
   } catch (err) {
     logger.error(`[TwitterBot] Like failed: ${err.response?.data?.detail || err.message}`);
   }
@@ -50,45 +55,66 @@ async function likeTweet(tweetId, userId, cred) {
 
 async function replyToTweet(tweetId, text, cred) {
   try {
-    await apiCall('POST', 'https://api.twitter.com/2/tweets', { text, reply: { in_reply_to_tweet_id: tweetId } }, cred);
-    logger.info(`[TwitterBot] Replied to tweet ${tweetId}`);
+    await apiCall('POST', 'https://api.twitter.com/2/tweets', {
+      text,
+      reply: { in_reply_to_tweet_id: tweetId }
+    }, cred);
+    logger.info(`[TwitterBot] Replied to ${tweetId}`);
   } catch (err) {
     logger.error(`[TwitterBot] Reply failed: ${err.response?.data?.detail || err.message}`);
+  }
+}
+
+async function quoteTweet(tweetId, comment, cred) {
+  try {
+    await apiCall('POST', 'https://api.twitter.com/2/tweets', {
+      text: comment,
+      quote_tweet_id: tweetId
+    }, cred);
+    logger.info(`[TwitterBot] Quote tweeted ${tweetId}`);
+  } catch (err) {
+    logger.error(`[TwitterBot] Quote tweet failed: ${err.response?.data?.detail || err.message}`);
   }
 }
 
 async function searchAndEngage(cred, myUserId) {
   try {
     const query = getRandomSearchQuery();
-    logger.info(`[TwitterBot] Searching: ${query}`);
+    logger.info(`[TwitterBot] Searching: "${query}"`);
+
     const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet')}&max_results=10&tweet.fields=author_id,text`;
     const resp = await apiCall('GET', url, null, cred);
     const tweets = resp.data?.data || [];
 
-    if (!tweets.length) {
-      logger.info('[TwitterBot] No tweets found for query');
-      return;
-    }
+    if (!tweets.length) { logger.info('[TwitterBot] No tweets found'); return; }
 
-    // Pick 2 random tweets to engage with
-    const picked = tweets.sort(() => 0.5 - Math.random()).slice(0, 2);
+    const picked = tweets.sort(() => 0.5 - Math.random()).slice(0, 3);
 
     for (const tweet of picked) {
       if (tweet.author_id === myUserId) continue;
 
-      // Like it
+      const roll = Math.random();
+
+      // Like every tweet we engage with
       await likeTweet(tweet.id, myUserId, cred);
       await new Promise(r => setTimeout(r, 2000));
 
-      // Generate smart AI reply based on tweet content
-      const reply = await generateSmartReply(tweet.text);
-      await replyToTweet(tweet.id, reply, cred);
-      await new Promise(r => setTimeout(r, 3000));
+      if (roll < 0.5) {
+        // Reply smartly
+        const reply = await generateSmartReply(tweet.text);
+        await replyToTweet(tweet.id, reply, cred);
+        logger.info(`[TwitterBot] Smart replied: "${reply}"`);
+      } else {
+        // Quote retweet with comment
+        const comment = await generateQuoteRetweet(tweet.text);
+        await quoteTweet(tweet.id, comment, cred);
+        logger.info(`[TwitterBot] Quote tweeted: "${comment}"`);
+      }
 
-      logger.info(`[TwitterBot] Engaged with: "${tweet.text.slice(0, 60)}..."`);
+      await new Promise(r => setTimeout(r, 4000));
     }
   } catch (err) {
-    logger.error(`[TwitterBot] Search/engage failed: ${err.response?.data?.detail || err.message}`);
+    logger.error(`[TwitterBot] Engage failed: ${err.response?.data?.detail || err.message}`);
   }
 }
 
@@ -101,7 +127,7 @@ async function logToSupabase(activity) {
 }
 
 async function runTwitterBot(payload = {}) {
-  logger.info('[TwitterBot] Starting');
+  logger.info('[TwitterBot] Canadian Spirit waking up...');
 
   const cred = {
     api_key: process.env.TWITTER_API_KEY,
@@ -117,11 +143,11 @@ async function runTwitterBot(payload = {}) {
 
   const myUserId = await getMyUserId(cred);
 
-  // Weighted actions — feels like a real active person
+  // Weighted action mix — feels like a real active person
   const roll = Math.random();
 
-  if (roll < 0.4) {
-    // 40% — post a tweet
+  if (roll < 0.35) {
+    // 35% — post original tweet
     try {
       const { data: posts } = await supabase
         .from('post_queue').select('*')
@@ -148,12 +174,12 @@ async function runTwitterBot(payload = {}) {
     }
 
   } else {
-    // 60% — search and engage (like + smart reply)
+    // 65% — search, like, reply or quote retweet
     logger.info('[TwitterBot] Engaging mode...');
     if (myUserId) await searchAndEngage(cred, myUserId);
   }
 
-  logger.info('[TwitterBot] Done');
+  logger.info('[TwitterBot] Canadian Spirit done for this cycle.');
 }
 
 module.exports = runTwitterBot;
