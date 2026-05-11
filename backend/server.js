@@ -47,10 +47,14 @@ app.use((req, res, next) => {
   next();
 });
 
+const authRoutes = require("./routes/authRoutes");
 // Health check — unauthenticated, used by load balancers / docker-compose depends_on
 app.get("/health", (req, res) => {
   res.json({ status: "ok", service: "canadian-spirit-social-manager" });
 });
+
+// All routes protected by internal auth
+app.use("/auth", authRoutes);
 
 // All routes protected by internal auth
 app.use(internalAuth);
