@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const OAuth = require('oauth-1.0a');
 const logger = require('../utils/logger');
 const { supabase } = require('../services/pgClient');
-const { autoGenerateContent } = require('../utils/autoContent');
+const { generateAutoContent } = require('../utils/autoContent');
 
 async function logToSupabase(activity) {
   try {
@@ -61,7 +61,7 @@ async function runTwitterBot(payload = {}) {
     if (error) { logger.error(`[TwitterBot] Supabase error: ${error.message}`); return; }
     if (!posts || posts.length === 0) {
       logger.info('[TwitterBot] Queue empty — auto-generating Canadian Spirit content...');
-      const generated = await autoGenerateContent('twitter');
+      const generated = await generateAutoContent('twitter');
       const result = await postTweet(generated.caption, cred);
       logger.info(`[TwitterBot] Auto-generated tweet posted successfully`);
       await logToSupabase({ action: 'postContent', text: generated.caption, resp: result });
