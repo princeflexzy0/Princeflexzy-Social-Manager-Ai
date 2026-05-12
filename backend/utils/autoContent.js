@@ -187,7 +187,7 @@ Context: ${ownerStatus}
 Tweet topic: "${context}"
 
 Write ONE tweet as Canadian Spirit. Sound completely human, alive and real.
-No hashtags. Max 1 emoji only if it feels natural. Under 270 characters.
+STRICT RULES: absolutely zero hashtags ever. Max 1 emoji only if completely natural. Under 270 characters. If you use a hashtag the tweet is rejected.
 Return only the tweet text. No quotes around it.
 `;
 
