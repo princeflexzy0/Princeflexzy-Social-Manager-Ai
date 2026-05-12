@@ -1,4 +1,4 @@
-const { sendToZapier } = require("../utils/zapierTweet");
+const { sendTweet: sendTweet } = require("../utils/scraperTweet");
 const axios = require('axios');
 const crypto = require('crypto');
 const OAuth = require('oauth-1.0a');
@@ -166,7 +166,7 @@ async function runTwitterBot(payload = {}) {
         text = generated.caption;
       }
 
-      const result = await sendToZapier(text);
+      const result = await sendTweet(text);
       logger.info(`[TwitterBot] Tweeted: ${text}`);
       await logToSupabase({ action: 'tweet', text, resp: result });
 
