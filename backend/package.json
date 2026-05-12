@@ -13,7 +13,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@treasure-dev/twitter-scraper": "^0.0.29",
+    "@the-convocation/twitter-scraper": "^0.22.3",
     "axios": "^1.10.0",
     "bcrypt": "^6.0.0",
     "compression": "^1.7.4",
