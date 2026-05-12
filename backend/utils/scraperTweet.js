@@ -4,23 +4,29 @@ const logger = require('./logger');
 let scraper = null;
 
 async function getScraperClient() {
-  if (scraper && await scraper.isLoggedIn()) {
-    return scraper;
+  if (scraper) {
+    const loggedIn = await scraper.isLoggedIn();
+    if (loggedIn) return scraper;
   }
   scraper = new Scraper();
   await scraper.login(
     process.env.TWITTER_USERNAME,
     process.env.TWITTER_PASSWORD,
-    process.env.TWITTER_EMAIL
+    process.env.TWITTER_EMAIL,
+    process.env.TWITTER_API_KEY,
+    process.env.TWITTER_API_SECRET,
+    process.env.TWITTER_ACCESS_TOKEN,
+    process.env.TWITTER_ACCESS_TOKEN_SECRET
   );
-  logger.info('[ScraperTweet] Logged in successfully');
+  const loggedIn = await scraper.isLoggedIn();
+  logger.info(`[ScraperTweet] Login status: ${loggedIn}`);
   return scraper;
 }
 
 async function sendTweet(text) {
   try {
     const client = await getScraperClient();
-    await client.sendTweet(text);
+    const result = await client.sendTweet(text);
     logger.info(`[ScraperTweet] Tweeted: ${text}`);
     return true;
   } catch (err) {
