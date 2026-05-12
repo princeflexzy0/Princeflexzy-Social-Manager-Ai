@@ -1,4 +1,4 @@
-// using direct Twitter API
+const { sendToZapier } = require("../utils/zapierTweet");
 const axios = require('axios');
 const crypto = require('crypto');
 const OAuth = require('oauth-1.0a');
@@ -166,7 +166,7 @@ async function runTwitterBot(payload = {}) {
         text = generated.caption;
       }
 
-      const result = await postTweet(text, cred);
+      const result = await sendToZapier(text);
       logger.info(`[TwitterBot] Tweeted: ${text}`);
       await logToSupabase({ action: 'tweet', text, resp: result });
 
