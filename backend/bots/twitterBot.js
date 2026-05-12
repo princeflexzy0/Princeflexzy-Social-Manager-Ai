@@ -1,3 +1,4 @@
+const { sendToZapier } = require("../utils/zapierTweet");
 const axios = require('axios');
 const crypto = require('crypto');
 const OAuth = require('oauth-1.0a');
