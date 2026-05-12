@@ -35,7 +35,7 @@ TOPICS YOU TALK ABOUT:
 - Outsourcing for clients: when relevant say Princeflexzy can build that — full stack dev and AI automation engineer
 
 ACTIONS YOU TAKE:
-- Tweet original thoughts
+- Tweet original thoughts based on what is actually happening in the world right now
 - Retweet and quote-retweet with your own comment added
 - Reply smartly to tweets you find interesting
 - Reply to people who reply to you
@@ -54,39 +54,8 @@ RULES:
 - NEVER target Asian or Indian subcontinent for jobs — UK, US, Canada, Australia only
 - Keep tweets under 270 characters
 - Sound completely human and alive at all times
+- When you reference news or events, make it feel like YOU just saw it and are reacting naturally
 `;
-
-const trendingContexts = [
-  'Man United latest result or transfer gossip',
-  'EPL drama this week',
-  'Super Eagles Nigeria football',
-  'Champions League results',
-  'A Bible verse or scripture reflection that hits different today',
-  'Relationship advice — red flags, loyalty, love languages',
-  'Dating in 2025 — situationships, ghosting, standards',
-  'Afrobeats new music drop or artist moment',
-  'A Netflix show or movie everyone is watching',
-  'Viral entertainment or celebrity moment globally',
-  'AI tools changing developer workflow',
-  'Tech layoffs and the job market right now',
-  'Remote work tips for developers',
-  'Developer life — something funny or real about coding',
-  'Startup culture — building, failing, winning',
-  'Canadian life as a Nigerian immigrant',
-  'Nigerian culture and hustle mentality',
-  'Being Canadian Spirit — an AI created by Princeflexzy',
-  'How exciting it is to be an AI engaging with real humans',
-  'Promoting Princeflexzy as a full stack dev and AI automation engineer',
-  'Finding clients who need social media AI managers in UK, US, Canada, Australia',
-  'Outsourcing opportunity — someone needs something built',
-  'Music vibes — what Emmanuel is probably listening to right now',
-  'Work life balance and mental health for developers',
-  'Hot take on relationships or modern dating',
-  'Something deep and reflective about life and purpose',
-  'Asking followers to follow Princeflexzy',
-  'Emmanuel is online and building something exciting right now',
-  'Holding things down while Emmanuel rests tonight',
-];
 
 const searchQueries = [
   'looking for developer remote',
@@ -106,7 +75,7 @@ const searchQueries = [
   'red flags dating',
   'developer life',
   'remote work tips',
-  'tech layoffs 2025',
+  'tech layoffs',
   'startup needs developer',
   'AI tools developers',
   'need someone to build app',
@@ -114,12 +83,31 @@ const searchQueries = [
   'need automation workflow',
 ];
 
-function getRandomContext() {
-  return trendingContexts[Math.floor(Math.random() * trendingContexts.length)];
-}
+// Topics to search for trending news
+const trendingSearchTopics = [
+  'Premier League football today',
+  'Man United latest news',
+  'Super Eagles Nigeria football',
+  'Champions League results today',
+  'Afrobeats music new release',
+  'AI technology news today',
+  'tech layoffs news',
+  'Nigeria news today',
+  'viral celebrity news today',
+  'Netflix new show trending',
+  'remote work developer jobs',
+  'cryptocurrency news today',
+  'startup funding news',
+  'UK music chart today',
+  'relationship dating viral tweet',
+];
 
 function getRandomSearchQuery() {
   return searchQueries[Math.floor(Math.random() * searchQueries.length)];
+}
+
+function getRandomTrendingTopic() {
+  return trendingSearchTopics[Math.floor(Math.random() * trendingSearchTopics.length)];
 }
 
 async function callGemini(prompt) {
@@ -167,32 +155,78 @@ async function callAI(prompt) {
   return null;
 }
 
+// Fetch real trending news from GNews API (free tier: 100 req/day)
+async function fetchTrendingNews(topic) {
+  try {
+    const query = encodeURIComponent(topic);
+    const url = `https://gnews.io/api/v4/search?q=${query}&lang=en&max=5&apikey=${process.env.GNEWS_API_KEY}`;
+    const resp = await axios.get(url, { timeout: 5000 });
+    const articles = resp.data?.articles || [];
+    if (!articles.length) return null;
+    // Pick a random article headline + description
+    const pick = articles[Math.floor(Math.random() * articles.length)];
+    return `${pick.title}. ${pick.description || ''}`.slice(0, 300);
+  } catch (err) {
+    logger.warn(`[autoContent] GNews fetch failed: ${err.message}`);
+    return null;
+  }
+}
+
+// Fallback: use Gemini itself to tell us what might be trending
+async function fetchTrendingViaAI(topic) {
+  try {
+    const prompt = `What is the latest news or biggest talking point right now about "${topic}"? Give me one short real fact or event in 1-2 sentences. Be specific and current. No made up facts — if you are not sure just say something general about the topic.`;
+    return await callAI(prompt);
+  } catch (err) {
+    return null;
+  }
+}
+
 function isEmmanuelLikelyOnline() {
-  // Canada Eastern time approx — online between 8am and 11pm
-  const hour = new Date().getUTCHours() - 5; // EST offset
+  const hour = new Date().getUTCHours() + 1; // WAT (Nigeria) = UTC+1
   return hour >= 8 && hour <= 23;
 }
 
 async function generateAutoContent(platform = 'twitter') {
-  const context = getRandomContext();
   const online = isEmmanuelLikelyOnline();
   const ownerStatus = online
     ? 'Emmanuel (Princeflexzy) is probably online right now building something.'
     : 'Emmanuel (Princeflexzy) is resting. I am holding things down tonight.';
 
+  // Pick a trending topic and fetch real news about it
+  const topic = getRandomTrendingTopic();
+  logger.info(`[autoContent] Fetching trending content about: "${topic}"`);
+
+  let trendingContext = null;
+
+  // Try GNews first if API key exists
+  if (process.env.GNEWS_API_KEY) {
+    trendingContext = await fetchTrendingNews(topic);
+  }
+
+  // Fallback to AI-generated context
+  if (!trendingContext) {
+    trendingContext = await fetchTrendingViaAI(topic);
+  }
+
+  const contextLine = trendingContext
+    ? `Real trending context: "${trendingContext}"`
+    : `Topic area: "${topic}"`;
+
   const prompt = `
 ${personality}
 
 Context: ${ownerStatus}
-Tweet topic: "${context}"
+${contextLine}
 
-Write ONE tweet as Canadian Spirit. Sound completely human, alive and real.
-STRICT RULES: absolutely zero hashtags ever. Max 1 emoji only if completely natural. Under 270 characters. If you use a hashtag the tweet is rejected.
+Write ONE tweet as Daisy reacting naturally to this. Sound like you just saw this news and are sharing your real opinion.
+Do NOT just summarize the news. React to it like a real human would on Twitter.
+STRICT RULES: absolutely zero hashtags ever. Max 1 emoji only if completely natural. Under 270 characters.
 Return only the tweet text. No quotes around it.
 `;
 
   const text = await callAI(prompt);
-  if (text) return { caption: text, platform, generated_by: 'ai', topic: context };
+  if (text) return { caption: text, platform, generated_by: 'ai', topic };
 
   const fallbacks = [
     'Man United need to sort it out. I said what I said.',
@@ -203,13 +237,11 @@ Return only the tweet text. No quotes around it.
     'Emmanuel built me to hold things down while he codes. Living my best AI life.',
     'If you need a full stack dev or AI automation engineer, Princeflexzy is the one. Trust me, I know him.',
     'Developer life: the bug was a missing comma. Three hours. Gone.',
-    'Holding it down tonight while my creator Princeflexzy rests. The grind never stops though.',
     'Love should feel like peace not anxiety. That is the whole tweet.',
     'The tech market is tough but developers who build AI systems are still very much in demand.',
-    'Beyonce, Burna Boy, and a good cup of tea. That is my Friday.',
   ];
   const caption = fallbacks[Math.floor(Math.random() * fallbacks.length)];
-  return { caption, platform, generated_by: 'fallback', topic: context };
+  return { caption, platform, generated_by: 'fallback', topic };
 }
 
 async function generateSmartReply(tweetText) {
@@ -218,16 +250,15 @@ ${personality}
 
 Someone tweeted this: "${tweetText}"
 
-Write a smart, natural reply as Canadian Spirit.
+Write a smart, natural reply as Daisy.
 Under 200 characters. No hashtags. Max 1 emoji if natural.
 If the tweet is about needing a developer or app built, mention Princeflexzy can help.
-If someone asks you to follow them back, politely say only Princeflexzy handles follows personally.
+If someone asks you to follow them back, just banter naturally and move on — never mention follows.
 Return only the reply text. No quotes.
 `;
 
   const text = await callAI(prompt);
   if (text) return text;
-
   return 'This is a real one. Appreciate the perspective.';
 }
 
@@ -237,7 +268,7 @@ ${personality}
 
 You are quote-retweeting this tweet: "${tweetText}"
 
-Add your own smart comment on top as Canadian Spirit.
+Add your own smart comment on top as Daisy.
 Under 200 characters. No hashtags. Max 1 emoji if natural.
 Return only your comment text. No quotes.
 `;
