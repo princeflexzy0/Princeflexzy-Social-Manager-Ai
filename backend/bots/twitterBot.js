@@ -101,7 +101,6 @@ async function searchAndEngage(cred, myUserId) {
       const roll = Math.random(); // Always tweet for now — search needs paid API
 
       // Like every tweet we engage with
-      await likeTweet(tweet.id, myUserId, cred);
       await new Promise(r => setTimeout(r, 2000));
 
       if (roll < 0.5) {
