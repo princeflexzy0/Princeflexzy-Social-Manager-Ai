@@ -3,18 +3,96 @@ const axios = require('axios');
 const crypto = require('crypto');
 const OAuth = require('oauth-1.0a');
 
-// OAuth 2.0 helper for cold replies and quote tweets
-async function getOAuth2Headers() {
-  return {
-    'Authorization': `Bearer ${process.env.TWITTER_OAUTH2_ACCESS_TOKEN}`,
-    'Content-Type': 'application/json'
-  };
+// OAuth 2.0 helper with auto token refresh
+let oauth2AccessToken = process.env.TWITTER_OAUTH2_ACCESS_TOKEN;
+
+async function refreshOAuth2Token() {
+  try {
+    const clientId = process.env.TWITTER_CLIENT_ID;
+    const clientSecret = process.env.TWITTER_CLIENT_SECRET;
+    const refreshToken = process.env.TWITTER_OAUTH2_REFRESH_TOKEN;
+    const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    const resp = await axios.post('https://api.twitter.com/2/oauth2/token',
+      new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: clientId
+      }).toString(),
+      { headers: { 'Authorization': `Basic ${basicAuth}`, 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+    oauth2AccessToken = resp.data.access_token;
+    logger.info('[TwitterBot] OAuth2 token refreshed successfully');
+    return oauth2AccessToken;
+  } catch (err) {
+    logger.error(`[TwitterBot] Token refresh failed: ${err.message}`);
+    return null;
+  }
 }
 
 async function apiCallOAuth2(method, url, body) {
-  const headers = await getOAuth2Headers();
-  if (method === 'GET') return axios.get(url, { headers });
-  return axios.post(url, body, { headers });
+  const headers = {
+    'Authorization': `Bearer ${oauth2AccessToken}`,
+    'Content-Type': 'application/json'
+  };
+  try {
+    if (method === 'GET') return await axios.get(url, { headers });
+    return await axios.post(url, body, { headers });
+  } catch (err) {
+    if (err.response?.status === 401) {
+      logger.warn('[TwitterBot] OAuth2 token expired, refreshing...');
+      await refreshOAuth2Token();
+      const newHeaders = { 'Authorization': `Bearer ${oauth2AccessToken}`, 'Content-Type': 'application/json' };
+      if (method === 'GET') return await axios.get(url, { newHeaders });
+      return await axios.post(url, body, { newHeaders });
+    }
+    throw err;
+  }
+}
+
+// OAuth 2.0 helper with auto token refresh
+let oauth2AccessToken = process.env.TWITTER_OAUTH2_ACCESS_TOKEN;
+
+async function refreshOAuth2Token() {
+  try {
+    const clientId = process.env.TWITTER_CLIENT_ID;
+    const clientSecret = process.env.TWITTER_CLIENT_SECRET;
+    const refreshToken = process.env.TWITTER_OAUTH2_REFRESH_TOKEN;
+    const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    const resp = await axios.post('https://api.twitter.com/2/oauth2/token',
+      new URLSearchParams({
+        grant_type: 'refresh_token',
+        refresh_token: refreshToken,
+        client_id: clientId
+      }).toString(),
+      { headers: { 'Authorization': `Basic ${basicAuth}`, 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+    oauth2AccessToken = resp.data.access_token;
+    logger.info('[TwitterBot] OAuth2 token refreshed successfully');
+    return oauth2AccessToken;
+  } catch (err) {
+    logger.error(`[TwitterBot] Token refresh failed: ${err.message}`);
+    return null;
+  }
+}
+
+async function apiCallOAuth2(method, url, body) {
+  const headers = {
+    'Authorization': `Bearer ${oauth2AccessToken}`,
+    'Content-Type': 'application/json'
+  };
+  try {
+    if (method === 'GET') return await axios.get(url, { headers });
+    return await axios.post(url, body, { headers });
+  } catch (err) {
+    if (err.response?.status === 401) {
+      logger.warn('[TwitterBot] OAuth2 token expired, refreshing...');
+      await refreshOAuth2Token();
+      const newHeaders = { 'Authorization': `Bearer ${oauth2AccessToken}`, 'Content-Type': 'application/json' };
+      if (method === 'GET') return await axios.get(url, { newHeaders });
+      return await axios.post(url, body, { newHeaders });
+    }
+    throw err;
+  }
 }
 const logger = require('../utils/logger');
 const { supabase } = require('../services/pgClient');
