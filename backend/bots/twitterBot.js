@@ -83,7 +83,7 @@ async function searchAndEngage(cred, myUserId) {
     const query = getRandomSearchQuery();
     logger.info(`[TwitterBot] Searching: "${query}"`);
 
-    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet')}&max_results=30&tweet.fields=author_id,text,public_metrics&expansions=author_id&user.fields=verified,verified_type`;
+    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet -is:nullcast')}&max_results=15&tweet.fields=author_id,text,public_metrics&expansions=author_id&user.fields=verified,verified_type`;
     const resp = await apiCall('GET', url, null, cred);
     const tweets = resp.data?.data || [];
 
