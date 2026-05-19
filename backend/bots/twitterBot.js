@@ -110,10 +110,17 @@ async function searchAndEngage(cred, myUserId) {
         await replyToTweet(tweet.id, reply, cred);
         logger.info(`[TwitterBot] Smart replied: "${reply}"`);
       } else {
-        // Quote retweet with comment
-        const comment = await generateQuoteRetweet(tweet.text);
-        await quoteTweet(tweet.id, comment, cred);
-        logger.info(`[TwitterBot] Quote tweeted: "${comment}"`);
+        // Quote retweet with comment — fallback to reply if blocked
+        try {
+          const comment = await generateQuoteRetweet(tweet.text);
+          await quoteTweet(tweet.id, comment, cred);
+          logger.info(`[TwitterBot] Quote tweeted: "${comment}"`);
+        } catch (qErr) {
+          logger.warn(`[TwitterBot] Quote blocked, falling back to reply`);
+          const reply = await generateSmartReply(tweet.text);
+          await replyToTweet(tweet.id, reply, cred);
+          logger.info(`[TwitterBot] Fallback replied: "${reply}"`);
+        }
       }
 
       await new Promise(r => setTimeout(r, 4000));
