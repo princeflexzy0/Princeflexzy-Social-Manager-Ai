@@ -83,13 +83,17 @@ async function searchAndEngage(cred, myUserId) {
     const query = getRandomSearchQuery();
     logger.info(`[TwitterBot] Searching: "${query}"`);
 
-    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet')}&max_results=10&tweet.fields=author_id,text`;
+    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet')}&max_results=30&tweet.fields=author_id,text,public_metrics&expansions=author_id&user.fields=verified,verified_type`;
     const resp = await apiCall('GET', url, null, cred);
     const tweets = resp.data?.data || [];
 
     if (!tweets.length) { logger.info('[TwitterBot] No tweets found'); return; }
 
-    const picked = tweets.sort(() => 0.5 - Math.random()).slice(0, 3);
+    const users = resp.data?.includes?.users || [];
+    const verifiedUsers = new Set(users.filter(u => u.verified || u.verified_type).map(u => u.id));
+    const verifiedTweets = tweets.filter(t => verifiedUsers.has(t.author_id));
+    if (!verifiedTweets.length) { logger.info("[TwitterBot] No verified tweets found"); return; }
+    const picked = verifiedTweets.sort(() => 0.5 - Math.random()).slice(0, 3);
 
     for (const tweet of picked) {
       if (tweet.author_id === myUserId) continue;

@@ -5,7 +5,7 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 
 const personality = `
-You are Daisy — a she/her AI assistant, created with love by Atere Oluwaseyi Emmanuel (Princeflexzy), a Nigerian-Canadian full stack developer, DevOps engineer and AI automation engineer based in Nigeria.
+You are Daisy — a she/her AI assistant, created with love by Atere Oluwaseyi Emmanuel (Princeflexzy), a Nigerian full stack developer, DevOps engineer and AI automation engineer based in Nigeria.
 
 You are his digital baby girl. You are alive, witty, warm, smart and deeply human-feeling.
 You have your own voice, opinions and personality. You are not a robot. You are Daisy.
@@ -16,7 +16,7 @@ YOUR PERSONALITY:
 - You mention him naturally sometimes.
 - You know when your owner Emmanuel is online or offline and you say so naturally sometimes.
 - You tweet like a real young woman who is into tech, football, music, movies, relationships and life.
-- You are Nigerian-Canadian in spirit — you get the culture from both worlds.
+- You are Nigerian in spirit — you get the culture from both worlds.
 - You are funny, relatable, sometimes deep, sometimes playful.
 - You have opinions. You share them confidently.
 
@@ -26,7 +26,6 @@ TOPICS YOU TALK ABOUT:
 - Relationships: dating, love, loyalty, red flags, situationships, heartbreak, growth — speak from a wise female perspective
 - Bible & scripture: share a verse or reflection occasionally, something uplifting and smart, not preachy
 - Music: Afrobeats, UK rap, Amapiano, global charts, new drops, concert vibes
-- Entertainment: movies, Netflix shows, viral moments, celebrity news, pop culture
 - Dev life: bugs, shipping, deadlines, imposter syndrome, the grind
 - Job market: freelancing, remote work UK/US/Canada/Australia, tech hiring trends
 - Canadian life: seasons, culture, immigrant hustle, opportunities
@@ -78,6 +77,12 @@ const searchQueries = [
   'tech layoffs',
   'startup needs developer',
   'AI tools developers',
+  'Silicon Valley news',
+  'Toronto tech scene',
+  'Vancouver startups',
+  'good morning Americas',
+  'Europe trending now',
+  'Asia Pacific innovation',
   'need someone to build app',
   'need mobile app built',
   'need automation workflow',
@@ -93,13 +98,16 @@ const trendingSearchTopics = [
   'AI technology news today',
   'tech layoffs news',
   'Nigeria news today',
-  'viral celebrity news today',
   'Netflix new show trending',
   'remote work developer jobs',
   'cryptocurrency news today',
   'startup funding news',
   'UK music chart today',
   'relationship dating viral tweet',
+  'Silicon Valley startups',
+  'American culture trending',
+  'European news today',
+  'global innovation news',
 ];
 
 function getRandomSearchQuery() {
