@@ -82,24 +82,24 @@ async function postTweet(text, cred) {
   return resp.data;
 }
 
-async function replyToTweet(tweetId, text) {
+async function replyToTweet(tweetId, text, cred) {
   try {
-    await apiCallOAuth2('POST', 'https://api.twitter.com/2/tweets', {
+    await apiCall('POST', 'https://api.twitter.com/2/tweets', {
       text,
       reply: { in_reply_to_tweet_id: tweetId }
-    });
+    }, cred);
     logger.info(`[TwitterBot] Replied to ${tweetId}`);
   } catch (err) {
     logger.error(`[TwitterBot] Reply failed: ${err.response?.data?.detail || err.message}`);
   }
 }
 
-async function quoteTweet(tweetId, comment) {
+async function quoteTweet(tweetId, comment, cred) {
   try {
-    await apiCallOAuth2('POST', 'https://api.twitter.com/2/tweets', {
+    await apiCall('POST', 'https://api.twitter.com/2/tweets', {
       text: comment,
       quote_tweet_id: tweetId
-    });
+    }, cred);
     logger.info(`[TwitterBot] Quote tweeted ${tweetId}`);
   } catch (err) {
     logger.error(`[TwitterBot] Quote tweet failed: ${err.response?.data?.detail || err.message}`);
@@ -124,17 +124,17 @@ async function searchAndEngage(cred, myUserId) {
     const roll = Math.random();
     if (roll < 0.5) {
       const reply = await generateSmartReply(target.text);
-      await replyToTweet(target.id, reply);
+      await replyToTweet(target.id, reply, cred);
       logger.info(`[TwitterBot] Smart replied: "${reply}"`);
     } else {
       try {
         const comment = await generateQuoteRetweet(target.text);
-        await quoteTweet(target.id, comment);
+        await quoteTweet(target.id, comment, cred);
         logger.info(`[TwitterBot] Quote tweeted: "${comment}"`);
       } catch (qErr) {
         logger.warn('[TwitterBot] Quote blocked, falling back to reply');
         const reply = await generateSmartReply(target.text);
-        await replyToTweet(target.id, reply);
+        await replyToTweet(target.id, reply, cred);
         logger.info(`[TwitterBot] Fallback replied: "${reply}"`);
       }
     }
