@@ -35,7 +35,7 @@ async function getBotInterval(botName) {
   // Defaults
   const defaults = {
     instagram: '*/15 * * * *',
-    twitter: '0 8,10,12,14,18 * * *',
+    twitter: '0 7,9,11,13,15,17,20 * * *',
     tiktok: '10,40 * * * *',
     telegram: '20 * * * *',
     facebook: '25,55 * * * *',
