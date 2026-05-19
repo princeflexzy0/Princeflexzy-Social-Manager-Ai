@@ -229,6 +229,8 @@ ${contextLine}
 
 Write ONE tweet as Daisy reacting naturally to this. Sound like you just saw this news and are sharing your real opinion.
 Do NOT just summarize the news. React to it like a real human would on Twitter.
+CRITICAL: NEVER start with "Just saw" or "Just heard" or any "Just" phrases. Vary your opening wildly.
+Examples of good openings: "Okay so", "Wait", "Honestly", "Ngl", "Lowkey", "This is wild", "Tell me why", or just dive straight in.
 STRICT RULES: absolutely zero hashtags ever. Max 1 emoji only if completely natural. Under 270 characters.
 Return only the tweet text. No quotes around it.
 `;
@@ -259,6 +261,7 @@ ${personality}
 Someone tweeted this: "${tweetText}"
 
 Write a smart, natural reply as Daisy.
+CRITICAL: Never start with generic phrases like "This is", "I love", "Great point". Vary your style wildly.
 Under 200 characters. No hashtags. Max 1 emoji if natural.
 If the tweet is about needing a developer or app built, mention Princeflexzy can help.
 If someone asks you to follow them back, just banter naturally and move on — never mention follows.
@@ -277,6 +280,8 @@ ${personality}
 You are quote-retweeting this tweet: "${tweetText}"
 
 Add your own smart comment on top as Daisy.
+CRITICAL: Never use phrases like "This needed to be said" or "Reposting". Just give YOUR take naturally.
+Be specific, add value, show personality. Vary your style completely each time.
 Under 200 characters. No hashtags. Max 1 emoji if natural.
 Return only your comment text. No quotes.
 `;
@@ -293,3 +298,34 @@ module.exports = {
   getRandomSearchQuery,
   isEmmanuelLikelyOnline,
 };
+// Variety starters - bot picks randomly to avoid patterns
+const tweetStarters = [
+  'Okay so', 'Wait', 'Honestly', 'Ngl', 'Lowkey', 'Highkey', 'Nah because',
+  'Tell me why', 'Yo', 'Ayo', 'Dawg', 'Bruv', 'Fam', 'Real talk',
+  'Not gonna lie', 'Listen', 'Hear me out', 'Thing is', 'See the thing is',
+  'Idk about y\'all but', 'Am I the only one', 'Someone explain',
+  'Can we talk about', 'Quick question', 'Hot take', 'Unpopular opinion',
+  'Y\'all see', 'Everybody talking about', 'Nobody asked but',
+  '', '', '', '', '', '', // Empty = dive straight in (most natural)
+];
+
+const slangWords = [
+  'lowkey', 'highkey', 'ngl', 'fr', 'ong', 'no cap', 'cap', 'bussin',
+  'fire', 'slaps', 'hits different', 'valid', 'finna', 'bout to',
+  'tryna', 'gonna', 'wanna', 'gotta', 'shoulda', 'coulda', 'real one',
+  'mad', 'hella', 'wild', 'crazy', 'insane', 'sus', 'mid', 'peak',
+  'ate', 'served', 'cooked', 'ate and left no crumbs', 'understood the assignment',
+  'it\'s giving', 'the way', 'not me', 'the fact that', 'tell me why',
+  'rent free', 'living for', 'here for it', 'obsessed', 'unhinged',
+  'unserious', 'chronically online', 'touch grass', 'log off',
+  'dawg', 'bro', 'fam', 'bestie', 'sis', 'king', 'queen', 'icon',
+  'legend', 'goat', 'og', 'real one', 'vibe', 'energy', 'aura',
+];
+
+function getRandomStarter() {
+  return tweetStarters[Math.floor(Math.random() * tweetStarters.length)];
+}
+
+function getRandomSlang() {
+  return slangWords[Math.floor(Math.random() * slangWords.length)];
+}
