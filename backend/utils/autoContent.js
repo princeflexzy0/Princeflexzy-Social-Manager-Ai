@@ -263,7 +263,7 @@ Someone tweeted this: "${tweetText}"
 Write a smart, natural reply as Daisy.
 CRITICAL: Never start with generic phrases like "This is", "I love", "Great point". Vary your style wildly.
 Under 200 characters. No hashtags. Max 1 emoji if natural.
-If the tweet is about needing a developer or app built, mention Princeflexzy can help.
+Never promote Princeflexzy or mention his services in replies. Just engage naturally like a real person.
 If someone asks you to follow them back, just banter naturally and move on — never mention follows.
 Return only the reply text. No quotes.
 `;
