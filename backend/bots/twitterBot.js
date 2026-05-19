@@ -115,11 +115,9 @@ async function searchAndEngage(cred, myUserId) {
     const resp = await apiCall('GET', url, null, cred);
     const tweets = resp.data?.data || [];
     if (!tweets.length) { logger.info('[TwitterBot] No tweets found'); return; }
-    const users = resp.data?.includes?.users || [];
-    const verifiedUsers = new Set(users.filter(u => u.verified || u.verified_type).map(u => u.id));
-    const verifiedTweets = tweets.filter(t => verifiedUsers.has(t.author_id));
-    if (!verifiedTweets.length) { logger.info('[TwitterBot] No verified tweets found'); return; }
-    const target = verifiedTweets.find(t => t.author_id !== myUserId && (t.reply_settings === "everyone" || !t.reply_settings));
+    const openTweets = tweets.filter(t => t.author_id !== myUserId && (t.reply_settings === 'everyone' || !t.reply_settings));
+    if (!openTweets.length) { logger.info('[TwitterBot] No open tweets found'); return; }
+    const target = openTweets[Math.floor(Math.random() * openTweets.length)];
     if (!target) return;
     const roll = Math.random();
     if (roll < 0.5) {
