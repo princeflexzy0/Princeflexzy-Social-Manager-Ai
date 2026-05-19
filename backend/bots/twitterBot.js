@@ -155,7 +155,7 @@ async function runTwitterBot(payload = {}) {
   }
   const myUserId = await getMyUserId(cred);
   const roll = Math.random();
-  if (roll < 0.35) {
+  if (roll < 1.00) {
     try {
       const { data: posts } = await supabase
         .from('post_queue').select('*')
