@@ -4,24 +4,17 @@ const path = require("path")
 const logger = require("../utils/logger")
 const cron = require("node-cron")
 // Import all bot functions
-const runInstagramBot = require("../bots/instagramBot")
+//const runInstagramBot = require("../bots/instagramBot")
 const runTwitterBot = require("../bots/twitterBot")
-const runTikTokBot = require("../bots/tiktokBot")
-const runTelegramBot = require("../bots/telegramBot")
-const runFacebookBot = require("../bots/facebookBot")
-const runRedditBot = require("../bots/redditBot")
-const runGmbBot = require("../bots/gmbBot")
-const runPinterestBot = require("../bots/pinterestBot")
+//const runTikTokBot = require("../bots/tiktokBot")
+//const runTelegramBot = require("../bots/telegramBot")
+//const runFacebookBot = require("../bots/facebookBot")
+//const runRedditBot = require("../bots/redditBot")
+//const runGmbBot = require("../bots/gmbBot")
+//const runPinterestBot = require("../bots/pinterestBot")
 
 const botFunctions = {
-  instagram: runInstagramBot,
   twitter: runTwitterBot,
-  tiktok: runTikTokBot,
-  telegram: runTelegramBot,
-  facebook: runFacebookBot,
-  reddit: runRedditBot,
-  gmb: runGmbBot,
-  pinterest: runPinterestBot,
 }
 
 // --- BOT STATUS TRACKING ---
@@ -34,14 +27,7 @@ async function getBotInterval(botName) {
     .single();
   // Defaults
   const defaults = {
-    instagram: '*/15 * * * *',
     twitter: '0 7,9,11,13,15,17,20 * * *',
-    tiktok: '10,40 * * * *',
-    telegram: '20 * * * *',
-    facebook: '25,55 * * * *',
-    reddit: '30 * * * *',
-    gmb: '45 * * * *',
-    pinterest: '50 * * * *',
   };
   let interval = (data && typeof data.value === 'string' && data.value.trim()) ? data.value.trim() : defaults[botName] || '*/15 * * * *';
   // Validate: must be a non-empty string
