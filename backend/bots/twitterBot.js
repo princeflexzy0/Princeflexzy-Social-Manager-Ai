@@ -1,99 +1,6 @@
-const { sendToZapier } = require("../utils/zapierTweet");
 const axios = require('axios');
 const crypto = require('crypto');
 const OAuth = require('oauth-1.0a');
-
-// OAuth 2.0 helper with auto token refresh
-let oauth2AccessToken = process.env.TWITTER_OAUTH2_ACCESS_TOKEN;
-
-async function refreshOAuth2Token() {
-  try {
-    const clientId = process.env.TWITTER_CLIENT_ID;
-    const clientSecret = process.env.TWITTER_CLIENT_SECRET;
-    const refreshToken = process.env.TWITTER_OAUTH2_REFRESH_TOKEN;
-    const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    const resp = await axios.post('https://api.twitter.com/2/oauth2/token',
-      new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-        client_id: clientId
-      }).toString(),
-      { headers: { 'Authorization': `Basic ${basicAuth}`, 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
-    oauth2AccessToken = resp.data.access_token;
-    logger.info('[TwitterBot] OAuth2 token refreshed successfully');
-    return oauth2AccessToken;
-  } catch (err) {
-    logger.error(`[TwitterBot] Token refresh failed: ${err.message}`);
-    return null;
-  }
-}
-
-async function apiCallOAuth2(method, url, body) {
-  const headers = {
-    'Authorization': `Bearer ${oauth2AccessToken}`,
-    'Content-Type': 'application/json'
-  };
-  try {
-    if (method === 'GET') return await axios.get(url, { headers });
-    return await axios.post(url, body, { headers });
-  } catch (err) {
-    if (err.response?.status === 401) {
-      logger.warn('[TwitterBot] OAuth2 token expired, refreshing...');
-      await refreshOAuth2Token();
-      const newHeaders = { 'Authorization': `Bearer ${oauth2AccessToken}`, 'Content-Type': 'application/json' };
-      if (method === 'GET') return await axios.get(url, { newHeaders });
-      return await axios.post(url, body, { newHeaders });
-    }
-    throw err;
-  }
-}
-
-// OAuth 2.0 helper with auto token refresh
-let oauth2AccessToken = process.env.TWITTER_OAUTH2_ACCESS_TOKEN;
-
-async function refreshOAuth2Token() {
-  try {
-    const clientId = process.env.TWITTER_CLIENT_ID;
-    const clientSecret = process.env.TWITTER_CLIENT_SECRET;
-    const refreshToken = process.env.TWITTER_OAUTH2_REFRESH_TOKEN;
-    const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    const resp = await axios.post('https://api.twitter.com/2/oauth2/token',
-      new URLSearchParams({
-        grant_type: 'refresh_token',
-        refresh_token: refreshToken,
-        client_id: clientId
-      }).toString(),
-      { headers: { 'Authorization': `Basic ${basicAuth}`, 'Content-Type': 'application/x-www-form-urlencoded' } }
-    );
-    oauth2AccessToken = resp.data.access_token;
-    logger.info('[TwitterBot] OAuth2 token refreshed successfully');
-    return oauth2AccessToken;
-  } catch (err) {
-    logger.error(`[TwitterBot] Token refresh failed: ${err.message}`);
-    return null;
-  }
-}
-
-async function apiCallOAuth2(method, url, body) {
-  const headers = {
-    'Authorization': `Bearer ${oauth2AccessToken}`,
-    'Content-Type': 'application/json'
-  };
-  try {
-    if (method === 'GET') return await axios.get(url, { headers });
-    return await axios.post(url, body, { headers });
-  } catch (err) {
-    if (err.response?.status === 401) {
-      logger.warn('[TwitterBot] OAuth2 token expired, refreshing...');
-      await refreshOAuth2Token();
-      const newHeaders = { 'Authorization': `Bearer ${oauth2AccessToken}`, 'Content-Type': 'application/json' };
-      if (method === 'GET') return await axios.get(url, { newHeaders });
-      return await axios.post(url, body, { newHeaders });
-    }
-    throw err;
-  }
-}
 const logger = require('../utils/logger');
 const { supabase } = require('../services/pgClient');
 const {
@@ -102,6 +9,44 @@ const {
   generateQuoteRetweet,
   getRandomSearchQuery,
 } = require('../utils/autoContent');
+
+let oauth2AccessToken = process.env.TWITTER_OAUTH2_ACCESS_TOKEN;
+
+async function refreshOAuth2Token() {
+  try {
+    const clientId = process.env.TWITTER_CLIENT_ID;
+    const clientSecret = process.env.TWITTER_CLIENT_SECRET;
+    const refreshToken = process.env.TWITTER_OAUTH2_REFRESH_TOKEN;
+    const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    const resp = await axios.post('https://api.twitter.com/2/oauth2/token',
+      new URLSearchParams({ grant_type: 'refresh_token', refresh_token: refreshToken, client_id: clientId }).toString(),
+      { headers: { 'Authorization': `Basic ${basicAuth}`, 'Content-Type': 'application/x-www-form-urlencoded' } }
+    );
+    oauth2AccessToken = resp.data.access_token;
+    logger.info('[TwitterBot] OAuth2 token refreshed');
+    return oauth2AccessToken;
+  } catch (err) {
+    logger.error(`[TwitterBot] Token refresh failed: ${err.message}`);
+    return null;
+  }
+}
+
+async function apiCallOAuth2(method, url, body) {
+  const headers = { 'Authorization': `Bearer ${oauth2AccessToken}`, 'Content-Type': 'application/json' };
+  try {
+    if (method === 'GET') return await axios.get(url, { headers });
+    return await axios.post(url, body, { headers });
+  } catch (err) {
+    if (err.response?.status === 401) {
+      logger.warn('[TwitterBot] OAuth2 token expired, refreshing...');
+      await refreshOAuth2Token();
+      const newHeaders = { 'Authorization': `Bearer ${oauth2AccessToken}`, 'Content-Type': 'application/json' };
+      if (method === 'GET') return await axios.get(url, { headers: newHeaders });
+      return await axios.post(url, body, { headers: newHeaders });
+    }
+    throw err;
+  }
+}
 
 function makeOAuth(cred) {
   return OAuth({
@@ -137,16 +82,7 @@ async function postTweet(text, cred) {
   return resp.data;
 }
 
-async function likeTweet(tweetId, userId, cred) {
-  try {
-    await apiCall('POST', `https://api.twitter.com/2/users/${userId}/likes`, { tweet_id: tweetId }, cred);
-    logger.info(`[TwitterBot] Liked ${tweetId}`);
-  } catch (err) {
-    logger.error(`[TwitterBot] Like failed: ${err.response?.data?.detail || err.message}`);
-  }
-}
-
-async function replyToTweet(tweetId, text, cred) {
+async function replyToTweet(tweetId, text) {
   try {
     await apiCallOAuth2('POST', 'https://api.twitter.com/2/tweets', {
       text,
@@ -158,7 +94,7 @@ async function replyToTweet(tweetId, text, cred) {
   }
 }
 
-async function quoteTweet(tweetId, comment, cred) {
+async function quoteTweet(tweetId, comment) {
   try {
     await apiCallOAuth2('POST', 'https://api.twitter.com/2/tweets', {
       text: comment,
@@ -167,6 +103,7 @@ async function quoteTweet(tweetId, comment, cred) {
     logger.info(`[TwitterBot] Quote tweeted ${tweetId}`);
   } catch (err) {
     logger.error(`[TwitterBot] Quote tweet failed: ${err.response?.data?.detail || err.message}`);
+    throw err;
   }
 }
 
@@ -174,89 +111,58 @@ async function searchAndEngage(cred, myUserId) {
   try {
     const query = getRandomSearchQuery();
     logger.info(`[TwitterBot] Searching: "${query}"`);
-
     const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet -is:nullcast')}&max_results=15&tweet.fields=author_id,text,public_metrics&expansions=author_id&user.fields=verified,verified_type`;
     const resp = await apiCall('GET', url, null, cred);
     const tweets = resp.data?.data || [];
-
     if (!tweets.length) { logger.info('[TwitterBot] No tweets found'); return; }
-
     const users = resp.data?.includes?.users || [];
     const verifiedUsers = new Set(users.filter(u => u.verified || u.verified_type).map(u => u.id));
     const verifiedTweets = tweets.filter(t => verifiedUsers.has(t.author_id));
-    if (!verifiedTweets.length) { logger.info("[TwitterBot] No verified tweets found"); return; }
-    const picked = verifiedTweets.sort(() => 0.5 - Math.random()).slice(0, 3);
-
-    for (const tweet of picked) {
-      if (tweet.author_id === myUserId) continue;
-
-      const roll = Math.random(); // Always tweet for now — search needs paid API
-
-      // Like every tweet we engage with
-      await new Promise(r => setTimeout(r, 2000));
-
-      if (roll < 0.5) {
-        // Reply smartly
-        const reply = await generateSmartReply(tweet.text);
-        await replyToTweet(tweet.id, reply, cred);
-        logger.info(`[TwitterBot] Smart replied: "${reply}"`);
-      } else {
-        // Quote retweet with comment — fallback to reply if blocked
-        try {
-          const comment = await generateQuoteRetweet(tweet.text);
-          await quoteTweet(tweet.id, comment, cred);
-          logger.info(`[TwitterBot] Quote tweeted: "${comment}"`);
-        } catch (qErr) {
-          logger.warn(`[TwitterBot] Quote blocked, falling back to reply`);
-          const reply = await generateSmartReply(tweet.text);
-          await replyToTweet(tweet.id, reply, cred);
-          logger.info(`[TwitterBot] Fallback replied: "${reply}"`);
-        }
+    if (!verifiedTweets.length) { logger.info('[TwitterBot] No verified tweets found'); return; }
+    const target = verifiedTweets.find(t => t.author_id !== myUserId);
+    if (!target) return;
+    const roll = Math.random();
+    if (roll < 0.5) {
+      const reply = await generateSmartReply(target.text);
+      await replyToTweet(target.id, reply);
+      logger.info(`[TwitterBot] Smart replied: "${reply}"`);
+    } else {
+      try {
+        const comment = await generateQuoteRetweet(target.text);
+        await quoteTweet(target.id, comment);
+        logger.info(`[TwitterBot] Quote tweeted: "${comment}"`);
+      } catch (qErr) {
+        logger.warn('[TwitterBot] Quote blocked, falling back to reply');
+        const reply = await generateSmartReply(target.text);
+        await replyToTweet(target.id, reply);
+        logger.info(`[TwitterBot] Fallback replied: "${reply}"`);
       }
-
-      await new Promise(r => setTimeout(r, 4000));
     }
   } catch (err) {
     logger.error(`[TwitterBot] Engage failed: ${err.response?.data?.detail || err.message}`);
   }
 }
 
-async function logToSupabase(activity) {
-  try {
-    await supabase.from('engagements').insert([{
-      platform: 'twitter', ...activity, created_at: new Date().toISOString()
-    }]);
-  } catch(e) {}
-}
-
 async function runTwitterBot(payload = {}) {
   logger.info('[TwitterBot] Canadian Spirit waking up...');
-
   const cred = {
     api_key: process.env.TWITTER_API_KEY,
     api_secret: process.env.TWITTER_API_SECRET,
     access_token: process.env.TWITTER_ACCESS_TOKEN,
     access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
   };
-
   if (!cred.api_key || !cred.access_token) {
     logger.error('[TwitterBot] Missing credentials');
     return;
   }
-
   const myUserId = await getMyUserId(cred);
-
-  // Weighted action mix — feels like a real active person
-  const roll = Math.random(); // Always tweet for now — search needs paid API
-
+  const roll = Math.random();
   if (roll < 0.35) {
-    // 35% — post original tweet
     try {
       const { data: posts } = await supabase
         .from('post_queue').select('*')
         .eq('platform', 'twitter').eq('status', 'pending')
         .order('priority', { ascending: false }).limit(1);
-
       let text;
       if (posts && posts.length > 0) {
         text = posts[0].caption;
@@ -267,21 +173,15 @@ async function runTwitterBot(payload = {}) {
         const generated = await generateAutoContent('twitter');
         text = generated.caption;
       }
-
       const result = await postTweet(text, cred);
       logger.info(`[TwitterBot] Tweeted: ${text}`);
-      await logToSupabase({ action: 'tweet', text, resp: result });
-
     } catch (err) {
       logger.error(`[TwitterBot] Tweet failed: ${err.response?.data?.detail || err.message}`);
     }
-
   } else {
-    // 65% — search, like, reply or quote retweet
     logger.info('[TwitterBot] Engaging mode...');
     if (myUserId) await searchAndEngage(cred, myUserId);
   }
-
   logger.info('[TwitterBot] Canadian Spirit done for this cycle.');
 }
 
