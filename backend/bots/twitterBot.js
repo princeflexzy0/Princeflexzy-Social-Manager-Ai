@@ -2,6 +2,20 @@ const { sendToZapier } = require("../utils/zapierTweet");
 const axios = require('axios');
 const crypto = require('crypto');
 const OAuth = require('oauth-1.0a');
+
+// OAuth 2.0 helper for cold replies and quote tweets
+async function getOAuth2Headers() {
+  return {
+    'Authorization': `Bearer ${process.env.TWITTER_OAUTH2_ACCESS_TOKEN}`,
+    'Content-Type': 'application/json'
+  };
+}
+
+async function apiCallOAuth2(method, url, body) {
+  const headers = await getOAuth2Headers();
+  if (method === 'GET') return axios.get(url, { headers });
+  return axios.post(url, body, { headers });
+}
 const logger = require('../utils/logger');
 const { supabase } = require('../services/pgClient');
 const {
@@ -56,10 +70,10 @@ async function likeTweet(tweetId, userId, cred) {
 
 async function replyToTweet(tweetId, text, cred) {
   try {
-    await apiCall('POST', 'https://api.twitter.com/2/tweets', {
+    await apiCallOAuth2('POST', 'https://api.twitter.com/2/tweets', {
       text,
       reply: { in_reply_to_tweet_id: tweetId }
-    }, cred);
+    });
     logger.info(`[TwitterBot] Replied to ${tweetId}`);
   } catch (err) {
     logger.error(`[TwitterBot] Reply failed: ${err.response?.data?.detail || err.message}`);
@@ -68,10 +82,10 @@ async function replyToTweet(tweetId, text, cred) {
 
 async function quoteTweet(tweetId, comment, cred) {
   try {
-    await apiCall('POST', 'https://api.twitter.com/2/tweets', {
+    await apiCallOAuth2('POST', 'https://api.twitter.com/2/tweets', {
       text: comment,
       quote_tweet_id: tweetId
-    }, cred);
+    });
     logger.info(`[TwitterBot] Quote tweeted ${tweetId}`);
   } catch (err) {
     logger.error(`[TwitterBot] Quote tweet failed: ${err.response?.data?.detail || err.message}`);
