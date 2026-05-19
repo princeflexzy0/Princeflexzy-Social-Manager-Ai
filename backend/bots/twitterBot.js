@@ -111,7 +111,7 @@ async function searchAndEngage(cred, myUserId) {
   try {
     const query = getRandomSearchQuery();
     logger.info(`[TwitterBot] Searching: "${query}"`);
-    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet -is:nullcast -conversation_id:none')}&max_results=15&tweet.fields=author_id,text,public_metrics,reply_settings&expansions=author_id&user.fields=verified,verified_type`;
+    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet -is:nullcast')}&max_results=15&tweet.fields=author_id,text,public_metrics,reply_settings&expansions=author_id&user.fields=verified,verified_type`;
     const resp = await apiCall('GET', url, null, cred);
     const tweets = resp.data?.data || [];
     if (!tweets.length) { logger.info('[TwitterBot] No tweets found'); return; }

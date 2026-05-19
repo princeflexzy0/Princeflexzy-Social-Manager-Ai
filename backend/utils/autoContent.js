@@ -58,11 +58,8 @@ RULES:
 
 const searchQueries = [
   'looking for developer remote',
-  'need web developer',
   'hire freelance developer',
   'social media manager needed',
-  'need AI automation',
-  'need backend developer',
   'need help with website',
   'AI integration help',
   'Man United',
@@ -76,7 +73,6 @@ const searchQueries = [
   'remote work tips',
   'tech layoffs',
   'startup needs developer',
-  'AI tools developers',
   'Silicon Valley news',
   'Toronto tech scene',
   'Vancouver startups',
@@ -85,7 +81,6 @@ const searchQueries = [
   'Asia Pacific innovation',
   'need someone to build app',
   'need mobile app built',
-  'need automation workflow',
 ];
 
 // Topics to search for trending news
