@@ -111,7 +111,7 @@ async function searchAndEngage(cred, myUserId) {
   try {
     const query = getRandomSearchQuery();
     logger.info(`[TwitterBot] Searching: "${query}"`);
-    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet -is:nullcast')}&max_results=15&tweet.fields=author_id,text,public_metrics&expansions=author_id&user.fields=verified,verified_type`;
+    const url = `https://api.twitter.com/2/tweets/search/recent?query=${encodeURIComponent(query + ' lang:en -is:retweet -is:nullcast -conversation_id:none')}&max_results=15&tweet.fields=author_id,text,public_metrics,reply_settings&expansions=author_id&user.fields=verified,verified_type`;
     const resp = await apiCall('GET', url, null, cred);
     const tweets = resp.data?.data || [];
     if (!tweets.length) { logger.info('[TwitterBot] No tweets found'); return; }
@@ -119,7 +119,7 @@ async function searchAndEngage(cred, myUserId) {
     const verifiedUsers = new Set(users.filter(u => u.verified || u.verified_type).map(u => u.id));
     const verifiedTweets = tweets.filter(t => verifiedUsers.has(t.author_id));
     if (!verifiedTweets.length) { logger.info('[TwitterBot] No verified tweets found'); return; }
-    const target = verifiedTweets.find(t => t.author_id !== myUserId);
+    const target = verifiedTweets.find(t => t.author_id !== myUserId && (t.reply_settings === "everyone" || !t.reply_settings));
     if (!target) return;
     const roll = Math.random();
     if (roll < 0.5) {
