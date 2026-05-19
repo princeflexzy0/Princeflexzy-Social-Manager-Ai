@@ -94,7 +94,7 @@ async function searchAndEngage(cred, myUserId) {
     for (const tweet of picked) {
       if (tweet.author_id === myUserId) continue;
 
-      const roll = 0.1; // Always tweet for now — search needs paid API
+      const roll = Math.random(); // Always tweet for now — search needs paid API
 
       // Like every tweet we engage with
       await likeTweet(tweet.id, myUserId, cred);
@@ -145,7 +145,7 @@ async function runTwitterBot(payload = {}) {
   const myUserId = await getMyUserId(cred);
 
   // Weighted action mix — feels like a real active person
-  const roll = 0.1; // Always tweet for now — search needs paid API
+  const roll = Math.random(); // Always tweet for now — search needs paid API
 
   if (roll < 0.35) {
     // 35% — post original tweet
