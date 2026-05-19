@@ -158,7 +158,7 @@ async function runTwitterBot(payload = {}) {
   // Weighted action mix — feels like a real active person
   const roll = Math.random(); // Always tweet for now — search needs paid API
 
-  if (roll < 0.35) {
+  if (roll < 0.00) {
     // 35% — post original tweet
     try {
       const { data: posts } = await supabase
